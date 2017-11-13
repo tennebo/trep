@@ -4,6 +4,10 @@
 
 /out/
 
+# Log files from RFA
+RFA_*.log
+RFA_*.log.lck
+
 ### STS ###
 .apt_generated
 .classpath
