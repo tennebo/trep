@@ -8,6 +8,9 @@
 RFA_*.log
 RFA_*.log.lck
 
+# RFA jars
+external/*.jar
+
 ### STS ###
 .apt_generated
 .classpath
