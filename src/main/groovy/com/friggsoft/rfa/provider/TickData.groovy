@@ -1,25 +1,17 @@
 package com.friggsoft.rfa.provider
 
+import com.friggsoft.rfa.simulator.TickSimulator
+import com.friggsoft.rfa.simulator.TradedPrice
 import com.reuters.rfa.common.Handle
 
 /**
  * Tick-level data to be streamed.
  */
 final class TickData {
-    private static final double bidAskSpread = 0.4
-
-    /**
-     * RIC.
-     */
-    String name
-
-    double tradePrice1
-    double bid
-    double ask
-    long acVol1
+    final TickSimulator tickSimulator
 
     boolean isPaused = false
-    boolean attribInUpdates = false
+    boolean attribInUpdates
     int priorityCount = 0
     int priorityClass = 0
 
@@ -28,28 +20,27 @@ final class TickData {
      */
     Handle handle
 
-    TickData() {
-        reset()
+    TickData(TickSimulator tickSimulator) {
+        this.tickSimulator = tickSimulator
     }
 
+    @Override
     String toString() {
-        String.format("%-6s: %5.2f  Bid %5.2f  Ask %5.2f  Volume %4d", name, tradePrice1, bid, ask, acVol1)
+        String.format("TickData for %s", tickSimulator.ticker)
     }
 
-    void reset() {
-        tradePrice1 = 10.0
-        bid = tradePrice1 - bidAskSpread / 2
-        ask = bid + bidAskSpread
+    String getName() {
+        return tickSimulator.ticker
     }
 
-    void increment() {
-        acVol1 += 50
-        tradePrice1 += 0.01
-        bid += 0.01
-        ask += 0.01
+    TradedPrice next() {
+        return tickSimulator.nextTick()
+    }
 
-        if (tradePrice1 >= 100) {
-            reset()
-        }
+    /**
+     * Return the # of ticks as a proxy for volume.
+     */
+    long getAcVol1() {
+        return tickSimulator.count
     }
 }

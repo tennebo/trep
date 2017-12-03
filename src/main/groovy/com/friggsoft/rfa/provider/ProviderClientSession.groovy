@@ -2,6 +2,9 @@ package com.friggsoft.rfa.provider
 
 import groovy.util.logging.Slf4j
 
+import com.friggsoft.rfa.simulator.SimulationSpec
+import com.friggsoft.rfa.simulator.TickSimulator
+import com.friggsoft.rfa.simulator.TradedPrice
 import com.friggsoft.rfa.util.GenericOMMParser
 import com.reuters.rfa.common.Client
 import com.reuters.rfa.common.Event
@@ -78,17 +81,17 @@ final class ProviderClientSession implements Client, Closeable {
                 continue
             }
 
-            tickData.increment()
+            TradedPrice tradedPrice = tickData.next()
 
             // Set the request token associated with this item into the OMMItemCmd
             OMMItemCmd cmd = new OMMItemCmd()
             cmd.setToken(rq)
 
-            // Encode update response message and set it into the OMMItemCmd
-            OMMMsg updateMsg = messageEncoder.encodeUpdateMsg(tickData)
+            // Encode the update response message and set it into the OMMItemCmd
+            OMMMsg updateMsg = messageEncoder.encodeUpdateMsg(tickData, tradedPrice)
             cmd.setMsg(updateMsg)
             submitCommand(cmd, "update")
-            log.info("Sent update for {}", tickData.toString())
+            log.info("Sent update for {}", tradedPrice.toString())
         }
     }
 
@@ -253,10 +256,12 @@ final class ProviderClientSession implements Client, Closeable {
         switch (msg.getMsgType()) {
             case OMMMsg.MsgType.REQUEST:
                 if (tickData == null) {
-                    tickData = new TickData()
                     String name = msg.getAttribInfo().getName()
+                    def simSpec = new SimulationSpec(name)
+                    def simulator = new TickSimulator(simSpec)
+                    tickData = new TickData(simulator)
+
                     String serviceName = msg.getAttribInfo().getServiceName()
-                    tickData.setName(name)
                     tickData.setAttribInUpdates(msg.isSet(OMMMsg.Indication.ATTRIB_INFO_IN_UPDATES))
 
                     if (msg.isSet(OMMMsg.Indication.NONSTREAMING)) {
@@ -312,8 +317,11 @@ final class ProviderClientSession implements Client, Closeable {
         // Set the request token associated with this item into the OMMItemCmd
         cmd.setToken(event.getRequestToken())
 
-        // Encode directory response message and set it into OMMItemCmd
-        OMMMsg refreshMsg = messageEncoder.encodeRefreshMsg(event, tickData)
+        // Strictly speaking we shouldn't trigger a 'next' here
+        TradedPrice tradedPrice = tickData.next()
+
+        // Encode the refresh response message and set it into the OMMItemCmd
+        OMMMsg refreshMsg = messageEncoder.encodeRefreshMsg(event, tickData, tradedPrice)
         cmd.setMsg(refreshMsg)
 
         submitCommand(cmd, "refresh")

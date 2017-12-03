@@ -3,6 +3,7 @@
  */
 package com.friggsoft.rfa.provider
 
+import com.friggsoft.rfa.simulator.TradedPrice
 import com.reuters.rfa.common.Handle
 import com.reuters.rfa.dictionary.FieldDictionary
 import com.reuters.rfa.omm.OMMAttribInfo
@@ -114,8 +115,9 @@ final class OmmMessageEncoder implements Closeable {
         }
     }
 
-    OMMMsg encodeUpdateMsg(TickData tickData) {
+    OMMMsg encodeUpdateMsg(TickData tickData, TradedPrice tradedPrice) {
         assert tickData != null, 'tickData cannot be null'
+        assert tradedPrice != null, 'tradedPrice cannot be null'
 
         // Set the encoder to encode an OMM message
         // The size is an estimate, but MUST be large enough for the entire message.
@@ -160,21 +162,21 @@ final class OmmMessageEncoder implements Closeable {
         // TRDPRC_1:
         // Initialize the entry with the field id and data type from RDMFieldDictionary for TRDPRC_1
         encoder.encodeFieldEntryInit((short) 6, OMMTypes.REAL)
-        double value = tickData.getTradePrice1()
+        double value = tradedPrice.price
         long longValue = NumberEncoding.roundDouble2Long(value, OMMNumeric.EXPONENT_NEG4)
         encoder.encodeReal(longValue, OMMNumeric.EXPONENT_NEG4)
 
         // BID:
         // Initialize the entry with the field id and data type from RDMFieldDictionary for BID
         encoder.encodeFieldEntryInit((short) 22, OMMTypes.REAL)
-        value = tickData.getBid()
+        value = tradedPrice.getBid()
         longValue = NumberEncoding.roundDouble2Long(value, OMMNumeric.EXPONENT_NEG4)
         encoder.encodeReal(longValue, OMMNumeric.EXPONENT_NEG4)
 
         // ASK:
         // Initialize the entry with the field id and data type from RDMFieldDictionary for ASK
         encoder.encodeFieldEntryInit((short) 25, OMMTypes.REAL)
-        value = tickData.getAsk()
+        value = tradedPrice.getAsk()
         longValue = NumberEncoding.roundDouble2Long(value, OMMNumeric.EXPONENT_NEG4)
         encoder.encodeReal(longValue, OMMNumeric.EXPONENT_NEG4)
 
@@ -425,9 +427,10 @@ final class OmmMessageEncoder implements Closeable {
         return (OMMMsg) encoder.getEncodedObject()
     }
 
-    OMMMsg encodeRefreshMsg(OMMSolicitedItemEvent event, TickData tickData) {
+    OMMMsg encodeRefreshMsg(OMMSolicitedItemEvent event, TickData tickData, TradedPrice tradedPrice) {
         assert event != null, 'event cannot be null'
         assert tickData != null, 'tickData cannot be null'
+        assert tradedPrice != null, 'tradedPrice cannot be null'
 
         // Set the encoder to encode an OMM message
         encoder.initialize(OMMTypes.MSG, 500)
@@ -473,19 +476,19 @@ final class OmmMessageEncoder implements Closeable {
 
         // TRDPRC_1
         encoder.encodeFieldEntryInit((short) 6, OMMTypes.REAL)
-        double value = tickData.getTradePrice1()
+        double value = tradedPrice.price
         long longValue = NumberEncoding.roundDouble2Long(value, OMMNumeric.EXPONENT_NEG4)
         encoder.encodeReal(longValue, OMMNumeric.EXPONENT_NEG4)
 
         // BID
         encoder.encodeFieldEntryInit((short) 22, OMMTypes.REAL)
-        value = tickData.getBid()
+        value = tradedPrice.getBid()
         longValue = NumberEncoding.roundDouble2Long(value, OMMNumeric.EXPONENT_NEG4)
         encoder.encodeReal(longValue, OMMNumeric.EXPONENT_NEG4)
 
         // ASK
         encoder.encodeFieldEntryInit((short) 25, OMMTypes.REAL)
-        value = tickData.getAsk()
+        value = tradedPrice.getAsk()
         longValue = NumberEncoding.roundDouble2Long(value, OMMNumeric.EXPONENT_NEG4)
         encoder.encodeReal(longValue, OMMNumeric.EXPONENT_NEG4)
 
