@@ -1,0 +1,65 @@
+
+buildscript {
+    ext {
+        springBootVersion = '1.5.9.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'groovy'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+group = 'com.friggsoft'
+version = '0.0.1-SNAPSHOT'
+description = 'TREP RFA Test'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+eclipse {
+    classpath {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+repositories {
+    mavenCentral()
+
+    // The RFA jar isn't available from mavenCentral, so place it here instead
+    flatDir {
+        dirs 'external'
+    }
+}
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter')
+    compile('org.codehaus.groovy:groovy')
+    compile('com.reuters:rfa:8.1.0.L1')
+
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.3.1'
+    distributionType = 'ALL'
+}
+
+bootRun {
+    // Default to the provider profile
+    args = ["--spring.profiles.active=provider"]
+}
