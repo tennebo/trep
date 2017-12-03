@@ -26,6 +26,15 @@ final class TickSimulator {
     }
 
     /**
+     * Return the current quote.
+     *
+     * @return the current simulated quote
+     */
+    TradedPrice currentTick() {
+        return newTradedPrice()
+    }
+
+    /**
      * Create the next quote.
      * This function has side-effects.
      *
@@ -36,7 +45,13 @@ final class TickSimulator {
         currentSpot += delta
         count++
 
-        // Round to two decimals
+        return newTradedPrice()
+    }
+
+    /**
+     * Return the current price rounded to two decimals.
+     */
+    private TradedPrice newTradedPrice() {
         double roundedSpot = Math.round(currentSpot * 100) / 100d
         return new TradedPrice(ticker, roundedSpot)
     }

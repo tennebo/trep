@@ -33,6 +33,10 @@ final class TickData {
         return tickSimulator.ticker
     }
 
+    TradedPrice current() {
+        return tickSimulator.currentTick()
+    }
+
     TradedPrice next() {
         return tickSimulator.nextTick()
     }
