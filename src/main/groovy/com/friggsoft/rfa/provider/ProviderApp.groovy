@@ -2,6 +2,11 @@ package com.friggsoft.rfa.provider
 
 import groovy.util.logging.Slf4j
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+
 import com.friggsoft.rfa.config.Constants
 import com.friggsoft.rfa.util.GenericOMMParser
 import com.reuters.rfa.common.Client
@@ -146,10 +151,10 @@ final class ProviderApp implements Client, Closeable {
 
     private void loadDictionary() throws DictionaryException {
         try {
-            String fieldDictPath = getFilePathFromResource(fieldDictionaryFilename)
+            String fieldDictPath = copyFromClasspathIntoTempFile(fieldDictionaryFilename)
             FieldDictionary.readRDMFieldDictionary(rwfDictionary, fieldDictPath)
 
-            String enumDictPath = getFilePathFromResource(enumDictionaryFilename)
+            String enumDictPath = copyFromClasspathIntoTempFile(enumDictionaryFilename)
             FieldDictionary.readEnumTypeDef(rwfDictionary, enumDictPath)
 
             GenericOMMParser.setDictionary(rwfDictionary)
@@ -166,20 +171,36 @@ final class ProviderApp implements Client, Closeable {
     }
 
     /**
-     * Return the file path, assuming the file exists on the local file system.
-     * TODO: This won't work when the file is within a jar.
+     * Copy the file from resources to a temporary file. This is a kludge for
+     * readers that can't handle the file residing inside of an uber-jar.
+     *
+     * The copied file fill be deleted on JVM exit.
      *
      * @param filename name of file to find (may be relative path)
-     * @return the full path to the file, or null if not found
+     * @return the full path to the copied file
      */
-    private static String getFilePathFromResource(String filename) {
+    static String copyFromClasspathIntoTempFile(String filename) throws IOException {
+        Path source = Paths.get(filename).getFileName()
+        Path target = Files.createTempFile(source.toString(), ".txt")
+        InputStream inputStream = readFromClasspathIntoStream(filename)
+        try {
+            Files.copy(inputStream, target, StandardCopyOption.REPLACE_EXISTING)
+        } finally {
+            inputStream.close()
+        }
+        target.toFile().deleteOnExit()
+        return target.toAbsolutePath().normalize().toString()
+    }
+
+    /** Caller must close the returned stream. */
+    private static InputStream readFromClasspathIntoStream(String filename) throws IOException {
         assert filename != null, 'filename cannot be null'
 
-        URL url = Thread.currentThread().getContextClassLoader().getResource(filename)
-        if (url == null) {
-            throw new IOException("Cannot find the file " + filename)
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename)
+        if (inputStream == null) {
+            throw new IOException("Could not find " + filename)
         }
-        return url.toURI().path
+        return inputStream
     }
 
     /**
