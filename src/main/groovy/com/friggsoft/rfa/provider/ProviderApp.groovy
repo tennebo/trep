@@ -2,13 +2,7 @@ package com.friggsoft.rfa.provider
 
 import groovy.util.logging.Slf4j
 
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-
 import com.friggsoft.rfa.config.Constants
-import com.friggsoft.rfa.util.GenericOMMParser
 import com.reuters.rfa.common.Client
 import com.reuters.rfa.common.Context
 import com.reuters.rfa.common.DispatchException
@@ -18,7 +12,6 @@ import com.reuters.rfa.common.EventSource
 import com.reuters.rfa.common.Handle
 import com.reuters.rfa.config.ConfigDb
 import com.reuters.rfa.config.ConfigUtil
-import com.reuters.rfa.dictionary.DictionaryException
 import com.reuters.rfa.dictionary.FieldDictionary
 import com.reuters.rfa.omm.OMMPool
 import com.reuters.rfa.session.Session
@@ -42,12 +35,6 @@ import com.reuters.rfa.session.omm.OMMProvider
  */
 @Slf4j
 final class ProviderApp implements Client, Closeable {
-
-    /** Field dictionary to return the consumers. */
-    private static final String fieldDictionaryFilename = "RDM/RDMFieldDictionary"
-
-    /** Enum types for the field dictionary. */
-    private static final String enumDictionaryFilename = "RDM/enumtype.def"
 
     /** Name of the service that this provider application supports. */
     final String serviceName
@@ -98,7 +85,7 @@ final class ProviderApp implements Client, Closeable {
         Context.initialize(configProvider)
 
         eventQueue = EventQueue.create("OMMProvider Server EventQueue")
-        loadDictionary()
+        DictionaryReader.load(rwfDictionary)
 
         // Acquire a session
         String fullyQualifiedSessionName = configProvider.variable("", Constants.session)
@@ -147,60 +134,6 @@ final class ProviderApp implements Client, Closeable {
 
         Context.uninitialize()
         log.info("Shutdown complete")
-    }
-
-    private void loadDictionary() throws DictionaryException {
-        try {
-            String fieldDictPath = copyFromClasspathIntoTempFile(fieldDictionaryFilename)
-            FieldDictionary.readRDMFieldDictionary(rwfDictionary, fieldDictPath)
-
-            String enumDictPath = copyFromClasspathIntoTempFile(enumDictionaryFilename)
-            FieldDictionary.readEnumTypeDef(rwfDictionary, enumDictPath)
-
-            GenericOMMParser.setDictionary(rwfDictionary)
-        }
-        catch (DictionaryException ex) {
-            log.error("Dictionary read error: " + ex.getMessage())
-            throw ex
-        }
-        catch (IOException ex) {
-            String msg = String.format("Cannot read dictionary: %s", ex.getMessage())
-            log.error(msg)
-            throw new DictionaryException(msg, ex)
-        }
-    }
-
-    /**
-     * Copy the file from resources to a temporary file. This is a kludge for
-     * readers that can't handle the file residing inside of an uber-jar.
-     *
-     * The copied file fill be deleted on JVM exit.
-     *
-     * @param filename name of file to find (may be relative path)
-     * @return the full path to the copied file
-     */
-    static String copyFromClasspathIntoTempFile(String filename) throws IOException {
-        Path source = Paths.get(filename).getFileName()
-        Path target = Files.createTempFile(source.toString(), ".txt")
-        InputStream inputStream = readFromClasspathIntoStream(filename)
-        try {
-            Files.copy(inputStream, target, StandardCopyOption.REPLACE_EXISTING)
-        } finally {
-            inputStream.close()
-        }
-        target.toFile().deleteOnExit()
-        return target.toAbsolutePath().normalize().toString()
-    }
-
-    /** Caller must close the returned stream. */
-    private static InputStream readFromClasspathIntoStream(String filename) throws IOException {
-        assert filename != null, 'filename cannot be null'
-
-        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename)
-        if (inputStream == null) {
-            throw new IOException("Could not find " + filename)
-        }
-        return inputStream
     }
 
     /**
