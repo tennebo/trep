@@ -144,9 +144,10 @@ final class LoginClient implements Client {
                         onLoginSuccess()
                     } else {
                         // RFA is processing the login
-                        log.info("Login is being processed: {}", OMMMsg.MsgType.toString(responseMsg.getMsgType()))
+                        byte msgType = responseMsg.getMsgType()
+                        log.info("Login is being processed: {}", OMMMsg.MsgType.toString(msgType))
                         logMessage(responseMsg)
-                        assert responseMsg.getMsgType() == OMMMsg.MsgType.REFRESH_RESP
+                        assert msgType == OMMMsg.MsgType.REFRESH_RESP || msgType ==  OMMMsg.MsgType.STATUS_RESP
                     }
                 }
                 break
