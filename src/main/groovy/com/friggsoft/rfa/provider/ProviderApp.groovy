@@ -177,7 +177,7 @@ final class ProviderApp implements Client, Closeable {
 
         URL url = Thread.currentThread().getContextClassLoader().getResource(filename)
         if (url == null) {
-            throw new IOException("Cannot find file " + filename)
+            throw new IOException("Cannot find the file " + filename)
         }
         return url.toURI().path
     }
