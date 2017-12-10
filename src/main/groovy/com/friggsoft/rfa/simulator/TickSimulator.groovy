@@ -14,7 +14,10 @@ final class TickSimulator {
     /** Used for the equity process. */
     private final Random random = new Random()
 
+    /** Accumulated number of simulated ticks. */
     int count
+
+    /** The current simulated value. */
     private double currentSpot
 
     TickSimulator(SimulationSpec simSpec) {
