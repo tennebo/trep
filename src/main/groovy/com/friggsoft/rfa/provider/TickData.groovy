@@ -11,7 +11,7 @@ final class TickData {
     final TickSimulator tickSimulator
 
     boolean isPaused = false
-    boolean attribInUpdates
+    boolean hasAttribInUpdates
     int priorityCount = 0
     int priorityClass = 0
 

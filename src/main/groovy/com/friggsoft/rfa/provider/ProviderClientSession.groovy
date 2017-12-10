@@ -262,7 +262,7 @@ final class ProviderClientSession implements Client, Closeable {
                     tickData = new TickData(simulator)
 
                     String serviceName = msg.getAttribInfo().getServiceName()
-                    tickData.setAttribInUpdates(msg.isSet(OMMMsg.Indication.ATTRIB_INFO_IN_UPDATES))
+                    tickData.setHasAttribInUpdates(msg.isSet(OMMMsg.Indication.ATTRIB_INFO_IN_UPDATES))
 
                     if (msg.isSet(OMMMsg.Indication.NONSTREAMING)) {
                         // Non-streaming request, don't add it to the request table

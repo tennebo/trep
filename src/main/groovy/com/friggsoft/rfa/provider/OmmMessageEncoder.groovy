@@ -58,8 +58,7 @@ import com.reuters.rfa.session.omm.OMMSolicitedItemEvent
  *    is not needed. The memory allocated for the message should be returned
  *    to the pool. Note: this step can be done after step 4.
  *
- * 7. returned the encoder's buffer to the calling method
- *    return (OMMMsg)encoder.getEncodedObject()
+ * 7. return the encoder's buffer to the calling method
  *
  * The encoded message is in the encoder's buffer at this time.
  */
@@ -142,7 +141,7 @@ final class OmmMessageEncoder implements Closeable {
         outMsg.setRespTypeNum(RDMInstrument.Update.QUOTE)
 
         // Did the original request for this item asked for attrib info to be included in the updates?
-        if (tickData.getAttribInUpdates()) {
+        if (tickData.getHasAttribInUpdates()) {
             outMsg.setAttribInfo(serviceName, tickData.getName(), RDMInstrument.NameType.RIC)
         }
 
