@@ -7,7 +7,8 @@ import java.util.concurrent.TimeUnit
 
 import com.friggsoft.rfa.config.Constants
 import com.reuters.rfa.common.Context
-import com.reuters.rfa.common.DispatchException
+import com.reuters.rfa.common.DeactivatedException
+import com.reuters.rfa.common.DispatchQueueInGroupException
 import com.reuters.rfa.common.EventQueue
 import com.reuters.rfa.common.EventSource
 import com.reuters.rfa.common.Handle
@@ -17,6 +18,7 @@ import com.reuters.rfa.config.ConfigUtil
 import com.reuters.rfa.omm.OMMPool
 import com.reuters.rfa.session.Session
 import com.reuters.rfa.session.omm.OMMConsumer
+
 /**
  * Market data consumer listening to streaming data from TREP via the RFA API.
  */
@@ -77,11 +79,18 @@ final class ConsumerApp implements Closeable {
         ommPool = OMMPool.create()
 
         itemManager = new ItemManager(eventQueue, ommConsumer, ommPool)
+
+        log.info("RFA version info: {}", Context.string())
+    }
+
+    @Override
+    String toString() {
+        return String.format("OMM %s Consumer", serviceName)
     }
 
     @Override
     void close() {
-        log.info("Shutting down OMM Consumer...")
+        log.info("Shutting down {}...", toString())
 
         eventQueue.deactivate()
         itemManager.close()
@@ -97,7 +106,7 @@ final class ConsumerApp implements Closeable {
         log.info("Shutdown complete")
     }
 
-    /** Send a login request. */
+    /** Send a login request and wait for the response. */
     boolean login(long timeout, TimeUnit unit) {
         loginHandle = loginClient.sendLoginRequestAsync(configProvider, eventQueue, ommConsumer, ommPool)
         return loginClient.awaitLogin(timeout, unit)
@@ -125,14 +134,25 @@ final class ConsumerApp implements Closeable {
      * Dispatch events. If no events, then wait N milliseconds before trying again.
      */
     def dispatchEvents = { ->
-        final int waitMilliSeconds = 100
+        final int waitMilliSeconds = 10
 
         for (; ;) {
             try {
                 eventQueue.dispatch(waitMilliSeconds)
             }
-            catch (DispatchException ex) {
-                log.warn("Event queue deactivated", ex)
+            catch (DeactivatedException ignore) {
+                // Normal shutdown
+                log.info("Event queue deactivated")
+                break
+            }
+            catch (DispatchQueueInGroupException ex) {
+                // I have no idea what this is
+                log.error("Event queue deactivated", ex)
+                break
+            }
+            catch (RuntimeException ex) {
+                // Some problem in our event handler
+                log.error("Error while processing event: {}", ex.message, ex)
                 break
             }
         }
@@ -149,7 +169,7 @@ final class ConsumerApp implements Closeable {
             // Just sit here and wait for the dispatcher to exit
             dispatcherFuture.join()
         } else {
-            log.error("Failed to log in")
+            log.error("Failed to log in: {}", loginClient.statusMessage)
             dispatcherFuture.cancel(true)
         }
     }

@@ -29,6 +29,9 @@ import com.reuters.rfa.session.omm.OMMItemIntSpec
 @Slf4j
 final class LoginClient implements Client {
 
+    /** Holds the error message in case we can't log in. */
+    volatile String statusMessage
+
     /** Set to true when we are logged in. */
     private volatile boolean loggedIn = false
 
@@ -57,13 +60,16 @@ final class LoginClient implements Client {
             log.info("Awaiting login response for {} {}...", timeout, unit)
             boolean latchIsZero = latch.await(timeout, unit)
             if (latchIsZero) {
-                log.info("Received login response: {}", (isLoggedIn()? "Login succeeded" : "Login failed"))
+                // The status message should have been set by the login event handler
+                log.info("Received login response: {}", statusMessage)
             } else {
-                log.warn("Login timed out")
+                statusMessage = String.format("Login timed out after %d %s", timeout, unit)
+                log.warn(statusMessage)
             }
         } catch (InterruptedException e) {
             // Treat this as login failed
-            log.warn("Interrupted while awaiting login clearing interrupt flag: {}", e.message)
+            statusMessage = "Interrupted while awaiting login: " + e.message
+            log.warn(statusMessage)
             Thread.currentThread().interrupt()
         }
         return isLoggedIn()
@@ -126,7 +132,8 @@ final class LoginClient implements Client {
         switch (event.getType()) {
             case Event.COMPLETION_EVENT:
                 // Completion event indicates that the stream was closed by RFA
-                log.info("Received COMPLETION_EVENT: {}", event.getHandle())
+                Handle handle = event.getHandle()
+                log.debug("Received COMPLETION_EVENT from {}active handle {}", handle.active? "" : "in", handle)
                 break
             case Event.OMM_ITEM_EVENT:
                 OMMItemEvent itemEvent = (OMMItemEvent) event
@@ -134,7 +141,7 @@ final class LoginClient implements Client {
                 assert responseMsg.getMsgModelType() == RDMMsgTypes.LOGIN
                 if (responseMsg.isFinal()) {
                     logMessage(responseMsg)
-                    onLoginFailure()
+                    onLoginFailure(responseMsg)
                 } else {
                     // When the login is successful, RFA forwards the message from the network
                     if ((responseMsg.getMsgType() == OMMMsg.MsgType.STATUS_RESP) &&
@@ -142,7 +149,7 @@ final class LoginClient implements Client {
                             (responseMsg.getState().getStreamState() == OMMState.Stream.OPEN) &&
                             (responseMsg.getState().getDataState() == OMMState.Data.OK)) {
                         logMessage(responseMsg)
-                        onLoginSuccess()
+                        onLoginSuccess(responseMsg)
                     } else {
                         // RFA is processing the login
                         byte msgType = responseMsg.getMsgType()
@@ -158,24 +165,39 @@ final class LoginClient implements Client {
         }
     }
 
+    /** Extract a meaningful status or error message from the OMM response message. */
+    private static String extractStatusMessage(OMMMsg msg) {
+        String user = msg.has(OMMMsg.HAS_ATTRIB_INFO) ? msg.getAttribInfo().getName() : "<unknown>"
+        String state = msg.has(OMMMsg.HAS_STATE) ? msg.getState().getText() : "<unknown>"
+        return String.format("For user %s: %s", user, state)
+    }
+
     /** Called upon receiving successful login response. */
-    private void onLoginSuccess() {
-        log.info("Login successful")
+    private void onLoginSuccess(OMMMsg msg) {
+        statusMessage = extractStatusMessage(msg)
         loggedIn = true
         latch.countDown()
     }
 
     /** Called upon login failure. */
-    private void onLoginFailure() {
-        log.error("Login failed")
+    private void onLoginFailure(OMMMsg msg) {
+        statusMessage = extractStatusMessage(msg)
         loggedIn = false
         latch.countDown()
     }
 
     /** For diagnostics only. */
     private static void logMessage(OMMMsg msg) {
-        log.info("Msg Type: " + OMMMsg.MsgType.toString(msg.getMsgType()))
-        log.info("Msg Model Type: " + RDMMsgTypes.toString(msg.getMsgModelType()))
-        log.info("Indication Flags: " + OMMMsg.Indication.indicationString(msg))
+        log.info("Msg Type: {}", OMMMsg.MsgType.toString(msg.getMsgType()))
+        log.info("Msg Model Type: {}", RDMMsgTypes.toString(msg.getMsgModelType()))
+        if (0 < OMMMsg.Indication.indicationString(msg).length()) {
+            log.info("Indication Flags: {}", OMMMsg.Indication.indicationString(msg))
+        }
+        if (msg.has(OMMMsg.HAS_STATE)) {
+            log.info("State: {}", msg.getState().getText())
+        }
+        if (msg.has(OMMMsg.HAS_ATTRIB_INFO)) {
+            log.info("Attrib Info: {}", msg.getAttribInfo().getName())
+        }
     }
 }
