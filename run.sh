@@ -3,7 +3,7 @@
 # Execute the Spring Boot app.
 
 # Spring Boot executable jar
-jarname=trep-test-0.0.1-SNAPSHOT.jar
+jarname=trep-test-0.2.0-SNAPSHOT.jar
 
 # Location of this script
 script_home=`dirname $0`
