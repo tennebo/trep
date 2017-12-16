@@ -107,9 +107,9 @@ final class ConsumerApp implements Closeable {
         itemManager.sendRequest(loginHandle, serviceName, rics)
     }
 
-    static Session acquireSession(ConfigDb configDb) {
+    static Session acquireSession(ConfigProvider configDb) {
         String fullyQualifiedSessionName = configDb.variable("", "session")
-        ConfigUtil.useDeprecatedRequestMsgs(configDb, fullyQualifiedSessionName, false)
+        ConfigUtil.useDeprecatedRequestMsgs((ConfigDb)configDb, fullyQualifiedSessionName, false)
         Session session = Session.acquire(fullyQualifiedSessionName)
         if (session == null) {
             String msg = String.format("Failed acquire session %s", fullyQualifiedSessionName)
