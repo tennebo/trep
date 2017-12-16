@@ -7,7 +7,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
-import com.friggsoft.rfa.util.GenericOMMParser
 import com.reuters.rfa.dictionary.DictionaryException
 import com.reuters.rfa.dictionary.FieldDictionary
 
@@ -32,8 +31,6 @@ final class DictionaryReader {
 
             String enumDictPath = copyFromClasspathIntoTempFile(enumDictionaryFilename)
             FieldDictionary.readEnumTypeDef(rwfDictionary, enumDictPath)
-
-            GenericOMMParser.setDictionary(rwfDictionary)
         }
         catch (DictionaryException ex) {
             log.error("Dictionary read error: " + ex.getMessage())

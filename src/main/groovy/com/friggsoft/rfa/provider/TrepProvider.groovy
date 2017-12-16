@@ -3,6 +3,7 @@ package com.friggsoft.rfa.provider
 import groovy.util.logging.Slf4j
 
 import com.friggsoft.rfa.config.Constants
+import com.friggsoft.rfa.util.GenericOMMParser
 import com.reuters.rfa.common.Client
 import com.reuters.rfa.common.Context
 import com.reuters.rfa.common.DispatchException
@@ -86,6 +87,7 @@ final class TrepProvider implements Client, Closeable {
 
         eventQueue = EventQueue.create("OMMProvider Server EventQueue")
         DictionaryReader.load(rwfDictionary)
+        GenericOMMParser.setDictionary(rwfDictionary)
 
         // Acquire a session
         String fullyQualifiedSessionName = configProvider.variable("", Constants.session)
