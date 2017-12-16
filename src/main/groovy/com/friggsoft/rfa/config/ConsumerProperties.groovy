@@ -40,7 +40,7 @@ class ConsumerProperties {
      * After a connection has been established, this value is used to set a
      * timer to check for three consecutive missed pings.
      */
-    int connectionTimeout
+    int connectionTimeout = 5000
 
     /** Connection parameter: List of servers to connect to. */
     String serverList

@@ -30,7 +30,7 @@ class ProviderProperties {
     String connectionType
 
     /** The time [milliseconds] to wait for a connection attempt to succeed. */
-    int connectionTimeout
+    int connectionTimeout = 10000
 
     /** Connection parameter: Port number to listen to. */
     int portNumber
