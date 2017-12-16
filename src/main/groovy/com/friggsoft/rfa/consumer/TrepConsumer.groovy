@@ -143,7 +143,7 @@ final class TrepConsumer implements Closeable {
      * Dispatch events. If no events, then wait N milliseconds before trying again.
      */
     def dispatchEvents = { ->
-        final int waitMilliSeconds = 10
+        int waitMilliSeconds = 10
 
         for (; ;) {
             try {

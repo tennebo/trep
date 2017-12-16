@@ -1,10 +1,13 @@
 
 buildscript {
     ext {
-        springBootVersion = '1.5.9.RELEASE'
+        springBootVersion = '2.0.0.M7'
     }
     repositories {
         mavenCentral()
+        maven {
+            url 'https://repo.spring.io/libs-milestone'
+        }
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
@@ -39,7 +42,9 @@ idea {
 
 repositories {
     mavenCentral()
-
+    maven {
+        url 'https://repo.spring.io/libs-milestone'
+    }
     // The RFA jar isn't available from mavenCentral, so place it here instead
     flatDir {
         dirs 'external'
@@ -47,11 +52,11 @@ repositories {
 }
 
 dependencies {
-    compile('org.springframework.boot:spring-boot-starter')
-    compile('org.codehaus.groovy:groovy')
-    compile('com.reuters:rfa:8.1.0.L1')
+    compile 'org.springframework.boot:spring-boot-starter'
+    compile 'org.codehaus.groovy:groovy'
+    compile 'com.reuters:rfa:8.1.0.L1'
 
-    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
 }
 
 task wrapper(type: Wrapper) {
