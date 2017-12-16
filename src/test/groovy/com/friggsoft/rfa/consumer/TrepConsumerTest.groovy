@@ -8,15 +8,15 @@ import org.junit.Test
 import com.reuters.rfa.config.ConfigProvider
 
 /**
- * Unit test of class {@link ConsumerApp}.
+ * Unit test of class {@link TrepConsumer}.
  */
-class ConsumerAppTest {
-    private ConsumerApp trepConsumer
+class TrepConsumerTest {
+    private TrepConsumer trepConsumer
 
     @Before
     void setUp() {
         ConfigProvider configProvider = ConfigProviderFactory.newConfigProvider()
-        trepConsumer = new ConsumerApp(configProvider)
+        trepConsumer = new TrepConsumer(configProvider)
     }
 
     @After

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 import com.friggsoft.rfa.config.ConsumerProperties
-import com.friggsoft.rfa.consumer.ConsumerApp
+import com.friggsoft.rfa.consumer.TrepConsumer
 import com.reuters.rfa.config.ConfigDb
 
 /**
@@ -30,7 +30,7 @@ class SpringConsumerRunner implements ApplicationRunner {
 
     @Override
     void run(ApplicationArguments args) {
-        ConsumerApp consumer = new ConsumerApp(configDb)
+        TrepConsumer consumer = new TrepConsumer(configDb)
 
         // Get RICs to subscribe to from the commandline
         String[] rics

@@ -56,6 +56,6 @@ final class TrepConnector implements AutoCloseable {
     }
 
     private Session acquireSession() {
-        return ConsumerApp.acquireSession(configProvider)
+        return TrepConsumer.acquireSession(configProvider)
     }
 }

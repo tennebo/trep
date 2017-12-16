@@ -23,7 +23,7 @@ import com.reuters.rfa.session.omm.OMMConsumer
  * Market data consumer listening to streaming data from TREP via the RFA API.
  */
 @Slf4j
-final class ConsumerApp implements Closeable {
+final class TrepConsumer implements Closeable {
 
     /** Name of the service to request data from. */
     private final String serviceName
@@ -54,7 +54,7 @@ final class ConsumerApp implements Closeable {
      *
      * @param configDb database of configuration parameters
      */
-    ConsumerApp(ConfigProvider configDb) {
+    TrepConsumer(ConfigProvider configDb) {
         log.info("Initializing OMM Consumer...")
 
         configProvider = configDb
