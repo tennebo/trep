@@ -18,46 +18,56 @@ class TrepConfigurer {
 
     @Bean
     @Profile(ProviderProperties.PROFILE_NAME)
-    ConfigDb providerConfigDb(ProviderProperties properties) {
+    ConfigDb providerConfigDb(ProviderProperties props) {
         def configDb = new ConfigDb()
 
-        configDb.addVariable(Constants.session, fullSessionName(properties.namespace, properties.sessionName))
-        configDb.addVariable(Constants.serviceName, properties.serviceName)
+        configDb.addVariable(Constants.session, fullSessionName(props.namespace, props.sessionName))
+        configDb.addVariable(Constants.serviceName, props.serviceName)
 
         String connectionListKey = String.format(
-                "%s.Sessions.%s.connectionList", properties.namespace, properties.sessionName)
-        configDb.addVariable(connectionListKey, properties.connectionName)
+                "%s.Sessions.%s.connectionList", props.namespace, props.sessionName)
+        configDb.addVariable(connectionListKey, props.connectionName)
 
         // Connection settings
-        String connectionsKey = String.format("%s.Connections.%s", properties.namespace, properties.connectionName)
-        configDb.addVariable(String.format("%s.connectionType", connectionsKey), properties.connectionType)
-        configDb.addVariable(String.format("%s.portNumber", connectionsKey), properties.portNumber.toString())
+        String connectionsKey = String.format("%s.Connections.%s", props.namespace, props.connectionName)
+        configDb.addVariable(String.format("%s.connectionType", connectionsKey), props.connectionType)
+        configDb.addVariable(String.format("%s.connectionTimeout", connectionsKey), props.connectionTimeout.toString())
+        configDb.addVariable(String.format("%s.portNumber", connectionsKey), props.portNumber.toString())
+
+        // Logging and tracing
+        configDb.addVariable(Constants.logFileName, props.logfileName)
+        configDb.addVariable(Constants.mountTrace, props.mountTrace.toString())
 
         return configDb
     }
 
     @Bean
     @Profile(ConsumerProperties.PROFILE_NAME)
-    ConfigDb consumerConfigDb(ConsumerProperties properties) {
+    ConfigDb consumerConfigDb(ConsumerProperties props) {
         def configDb = new ConfigDb()
 
-        configDb.addVariable(Constants.application, properties.application)
-        configDb.addVariable(Constants.user, properties.user)
-        configDb.addVariable(Constants.session, fullSessionName(properties.namespace, properties.sessionName))
-        configDb.addVariable(Constants.serviceName, properties.serviceName)
+        configDb.addVariable(Constants.application, props.application)
+        configDb.addVariable(Constants.user, props.user)
+        configDb.addVariable(Constants.session, fullSessionName(props.namespace, props.sessionName))
+        configDb.addVariable(Constants.serviceName, props.serviceName)
 
         String connectionListKey = String.format(
-                "%s.Sessions.%s.connectionList", properties.namespace, properties.sessionName)
-        configDb.addVariable(connectionListKey, properties.connectionName)
+                "%s.Sessions.%s.connectionList", props.namespace, props.sessionName)
+        configDb.addVariable(connectionListKey, props.connectionName)
 
         // Connection settings
-        String connectionsKey = String.format("%s.Connections.%s", properties.namespace, properties.connectionName)
-        configDb.addVariable(String.format("%s.connectionType", connectionsKey), properties.connectionType)
-        configDb.addVariable(String.format("%s.portNumber", connectionsKey), properties.portNumber.toString())
-        configDb.addVariable(String.format("%s.serverList", connectionsKey), properties.serverList)
+        String connectionsKey = String.format("%s.Connections.%s", props.namespace, props.connectionName)
+        configDb.addVariable(String.format("%s.connectionType", connectionsKey), props.connectionType)
+        configDb.addVariable(String.format("%s.connectionTimeout", connectionsKey), props.connectionTimeout.toString())
+        configDb.addVariable(String.format("%s.portNumber", connectionsKey), props.portNumber.toString())
+        configDb.addVariable(String.format("%s.serverList", connectionsKey), props.serverList)
 
-        configDb.addVariable(Constants.position, properties.position)
-        configDb.addVariable(Constants.MessageModelType, properties.mmt)
+        configDb.addVariable(Constants.position, props.position)
+        configDb.addVariable(Constants.MessageModelType, props.mmt)
+
+        // Logging and tracing
+        configDb.addVariable(Constants.logFileName, props.logfileName)
+        configDb.addVariable(Constants.mountTrace, props.mountTrace.toString())
 
         // TODO: I have no idea what these are for
         configDb.addVariable("sendView", "true")

@@ -35,6 +35,9 @@ final class ConfigProviderFactory {
         // What type of data are we requesting?
         configDb.addVariable(Constants.MessageModelType, "MARKET_PRICE")
 
+        // Disable logging
+        configDb.addVariable(Constants.logFileName, "none")
+
         return configDb
     }
 }

@@ -21,4 +21,16 @@ interface Constants {
 
     /** Message Model Type. */
     String MessageModelType = "mmt"
+
+    /**
+     * Filename used for low-level data and error tracing by the RSSL Transport.
+     * Messages are logged using the J2SE Logging API. If the filename is “console”
+     * then a ConsoleHandler is used instead of a FileHandler.
+     *
+     * To disable RSSL log, set to “none”.
+     */
+    String logFileName = "logFileName"
+
+    /** Enables or disables detailed tracing of the connection process. */
+    String mountTrace = "mountTrace"
 }

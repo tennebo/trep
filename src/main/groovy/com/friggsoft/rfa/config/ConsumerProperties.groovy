@@ -35,6 +35,13 @@ class ConsumerProperties {
     /** Connection parameter: Type of connection, e.g. RSSL. */
     String connectionType
 
+    /**
+     * The time [milliseconds] to wait for a connection attempt to succeed.
+     * After a connection has been established, this value is used to set a
+     * timer to check for three consecutive missed pings.
+     */
+    int connectionTimeout
+
     /** Connection parameter: List of servers to connect to. */
     String serverList
 
@@ -46,4 +53,10 @@ class ConsumerProperties {
 
     /** Message Model Type. */
     String mmt
+
+    /** Logfile name, see {@link Constants#logFileName}. */
+    String logfileName
+
+    /** Enable tracing of the connection process? */
+    boolean mountTrace
 }

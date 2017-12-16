@@ -29,6 +29,15 @@ class ProviderProperties {
     /** Connection parameter: Type of connection, e.g. RSSL_PROV. */
     String connectionType
 
+    /** The time [milliseconds] to wait for a connection attempt to succeed. */
+    int connectionTimeout
+
     /** Connection parameter: Port number to listen to. */
     int portNumber
+
+    /** Logfile name, see {@link Constants#logFileName}. */
+    String logfileName
+
+    /** Enable tracing of the connection process? */
+    boolean mountTrace
 }
