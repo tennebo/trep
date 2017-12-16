@@ -14,19 +14,14 @@ import com.reuters.rfa.common.Handle
 import com.reuters.rfa.config.ConfigDb
 import com.reuters.rfa.config.ConfigProvider
 import com.reuters.rfa.config.ConfigUtil
-import com.reuters.rfa.omm.OMMEncoder
 import com.reuters.rfa.omm.OMMPool
 import com.reuters.rfa.session.Session
 import com.reuters.rfa.session.omm.OMMConsumer
-
 /**
  * Market data consumer listening to streaming data from TREP via the RFA API.
  */
 @Slf4j
 final class ConsumerApp implements Closeable {
-
-    /** Event queue to use for receiving events from RFA to the application. */
-    final EventQueue eventQueue
 
     /** Name of the service to request data from. */
     private final String serviceName
@@ -34,14 +29,19 @@ final class ConsumerApp implements Closeable {
     /** TREP configuration database. */
     private final ConfigProvider configProvider
 
-    final OMMConsumer ommConsumer
-    final OMMPool ommPool
-    private final OMMEncoder encoder
-
     /** The session serving this application. */
     private final Session session
 
+    /** Event queue to use for receiving events from RFA to the application. */
+    private final EventQueue eventQueue
+
+    private final OMMConsumer ommConsumer
+    private final OMMPool ommPool
+
+    /** Manage this app's login to the TREP server. */
     private final LoginClient loginClient = new LoginClient()
+
+    /** Handles item (RIC) requests and responses. */
     private ItemManager itemManager
 
     /** A handle returned by RFA. */
@@ -76,8 +76,7 @@ final class ConsumerApp implements Closeable {
         // Create an OMMPool
         ommPool = OMMPool.create()
 
-        // Create an OMMEncoder
-        encoder = ommPool.acquireEncoder()
+        itemManager = new ItemManager(eventQueue, ommConsumer, ommPool)
     }
 
     @Override
@@ -85,16 +84,13 @@ final class ConsumerApp implements Closeable {
         log.info("Shutting down OMM Consumer...")
 
         eventQueue.deactivate()
-        if (itemManager != null) {
-            itemManager.close()
-        }
+        itemManager.close()
         if (loginHandle != null) {
             ommConsumer.unregisterClient(loginHandle)
         }
         eventQueue.destroy()
         ommConsumer.destroy()
         session.release()
-        ommPool.releaseEncoder(encoder)
         ommPool.destroy()
 
         Context.uninitialize()
@@ -108,7 +104,6 @@ final class ConsumerApp implements Closeable {
     }
 
     void subscribe(String[] rics) {
-        itemManager = new ItemManager(this)
         itemManager.sendRequest(loginHandle, serviceName, rics)
     }
 

@@ -5,10 +5,13 @@ import groovy.util.logging.Slf4j
 import com.friggsoft.rfa.util.GenericOMMParser
 import com.reuters.rfa.common.Client
 import com.reuters.rfa.common.Event
+import com.reuters.rfa.common.EventQueue
 import com.reuters.rfa.common.Handle
 import com.reuters.rfa.omm.OMMMsg
+import com.reuters.rfa.omm.OMMPool
 import com.reuters.rfa.rdm.RDMInstrument
 import com.reuters.rfa.rdm.RDMMsgTypes
+import com.reuters.rfa.session.omm.OMMConsumer
 import com.reuters.rfa.session.omm.OMMItemEvent
 import com.reuters.rfa.session.omm.OMMItemIntSpec
 
@@ -18,20 +21,23 @@ import com.reuters.rfa.session.omm.OMMItemIntSpec
 @Slf4j
 final class ItemManager implements Client, Closeable {
 
-    /** The main consumer app. */
-    private final ConsumerApp consumerApp
+    private final EventQueue eventQueue
+    private final OMMConsumer ommConsumer
+    private final OMMPool ommPool
 
     /** Handles returned by RFA on registering the items; used to identify the items. */
     private final ArrayList<Handle> itemHandles = new ArrayList<>()
 
-    ItemManager(ConsumerApp consumerApp) {
-        this.consumerApp = consumerApp
+    ItemManager(EventQueue eventQueue, OMMConsumer ommConsumer, OMMPool ommPool) {
+        this.eventQueue = eventQueue
+        this.ommConsumer = ommConsumer
+        this.ommPool = ommPool
     }
 
     @Override
     void close() {
         for (Handle itemHandle : itemHandles) {
-            consumerApp.ommConsumer.unregisterClient(itemHandle)
+            ommConsumer.unregisterClient(itemHandle)
         }
         itemHandles.clear()
     }
@@ -82,7 +88,7 @@ final class ItemManager implements Client, Closeable {
         OMMItemIntSpec ommItemIntSpec = new OMMItemIntSpec()
 
         // Prepare item request message
-        OMMMsg ommMsg = consumerApp.ommPool.acquireMsg()
+        OMMMsg ommMsg = ommPool.acquireMsg()
         try {
             ommMsg.setMsgType(OMMMsg.MsgType.REQUEST)
             ommMsg.setMsgModelType(msgModelType)
@@ -101,12 +107,11 @@ final class ItemManager implements Client, Closeable {
 
                 // Set the message into interest spec
                 ommItemIntSpec.setMsg(ommMsg)
-                Handle itemHandle = consumerApp.ommConsumer.registerClient(
-                        consumerApp.eventQueue, ommItemIntSpec, this, null)
+                Handle itemHandle = ommConsumer.registerClient(eventQueue, ommItemIntSpec, this, null)
                 itemHandles.add(itemHandle)
             }
         } finally {
-            consumerApp.ommPool.releaseMsg(ommMsg)
+            ommPool.releaseMsg(ommMsg)
         }
     }
 }
