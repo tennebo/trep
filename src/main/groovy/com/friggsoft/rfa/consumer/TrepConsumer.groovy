@@ -3,6 +3,7 @@ package com.friggsoft.rfa.consumer
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeUnit
 
 import com.friggsoft.rfa.config.Constants
@@ -158,11 +159,6 @@ final class TrepConsumer implements Closeable {
                 log.error("Event queue deactivated", ex)
                 break
             }
-            catch (RuntimeException ex) {
-                // Some problem in our event handler
-                log.error("Error while processing event: {}", ex.message, ex)
-                break
-            }
         }
     }
 
@@ -175,7 +171,11 @@ final class TrepConsumer implements Closeable {
         if (isLoggedIn) {
             subscribe(rics)
             // Just sit here and wait for the dispatcher to exit
-            dispatcherFuture.join()
+            try {
+                dispatcherFuture.join()
+            } catch (CompletionException ex) {
+                log.error("Something went pear-shaped: {}", ex.cause.message, ex.cause)
+            }
         } else {
             log.error("Failed to log in: {}", loginClient.statusMessage)
             dispatcherFuture.cancel(true)
