@@ -24,11 +24,12 @@ import com.reuters.rfa.session.omm.OMMItemEvent
 import com.reuters.rfa.session.omm.OMMItemIntSpec
 
 /**
- * Handle login activities between application and RFA.
+ * Handle login activities between the consumer application and RFA.
  */
 @Slf4j
 final class LoginClient implements Client {
 
+    /** Set to true when we are logged in. */
     private volatile boolean loggedIn = false
 
     /** Latch to enable synchronous login requests. */
@@ -54,15 +55,15 @@ final class LoginClient implements Client {
     boolean awaitLogin(long timeout, TimeUnit unit) {
         try {
             log.info("Awaiting login response for {} {}...", timeout, unit)
-            boolean zero = latch.await(timeout, unit)
-            if (!zero) {
-                log.warn("Login timed out")
-            } else {
+            boolean latchIsZero = latch.await(timeout, unit)
+            if (latchIsZero) {
                 log.info("Received login response: {}", (isLoggedIn()? "Login succeeded" : "Login failed"))
+            } else {
+                log.warn("Login timed out")
             }
         } catch (InterruptedException e) {
             // Treat this as login failed
-            log.warn("Interrupted while awaiting login clearing interrupt flag")
+            log.warn("Interrupted while awaiting login clearing interrupt flag: {}", e.message)
             Thread.currentThread().interrupt()
         }
         return isLoggedIn()
@@ -92,9 +93,9 @@ final class LoginClient implements Client {
      * Encode the login request message.
      */
     private static OMMMsg encodeLoginRequestMsg(ConfigProvider configDb, OMMPool ommPool, OMMEncoder encoder) {
-        String application = configDb.variable("", Constants.application)
-        String username = configDb.variable("", Constants.user)
-        String position = configDb.variable("", Constants.position)
+        String application = configDb.variable(null, Constants.application)
+        String username = configDb.variable(null, Constants.user)
+        String position = configDb.variable(null, Constants.position)
 
         OMMMsg msg = ommPool.acquireMsg()
         try {
