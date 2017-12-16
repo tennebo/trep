@@ -63,15 +63,15 @@ final class ItemManager implements Client, Closeable {
     /**
      * Extract the RIC from the given message.
      */
-    private static String getRIC(OMMMsg responseMsg) {
-        return responseMsg.has(OMMMsg.HAS_ATTRIB_INFO) ? responseMsg.getAttribInfo().getName() : "<No RIC>"
+    private static String getRIC(OMMMsg msg) {
+        return msg.has(OMMMsg.HAS_ATTRIB_INFO) ? msg.getAttribInfo().getName() : "<No RIC>"
     }
 
     /**
      * For diagnostics: Extract the state description from the given message.
      */
-    private static String getStateText(OMMMsg responseMsg) {
-        return responseMsg.has(OMMMsg.HAS_STATE)? responseMsg.getState().getText() : "<stateless>"
+    private static String getStateText(OMMMsg msg) {
+        return msg.has(OMMMsg.HAS_STATE)? msg.getState().getText() : "<stateless>"
     }
 
     /**
