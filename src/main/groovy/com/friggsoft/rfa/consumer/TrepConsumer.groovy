@@ -43,6 +43,9 @@ final class TrepConsumer implements Closeable {
     /** Manage this app's login to the TREP server. */
     private final LoginClient loginClient = new LoginClient()
 
+    /** Client to stream market data updates to. */
+    private final StreamingClient client
+
     /** Handles item (RIC) requests and responses. */
     private ItemManager itemManager
 
@@ -78,6 +81,7 @@ final class TrepConsumer implements Closeable {
         // Create an OMMPool
         ommPool = OMMPool.create()
 
+        client = new StreamingClient(this.&sink)
         itemManager = new ItemManager(eventQueue, ommConsumer, ommPool)
 
         log.info("RFA version info: {}", Context.string())
@@ -114,9 +118,9 @@ final class TrepConsumer implements Closeable {
 
     void subscribe(String[] rics) {
         if (!loginClient.isLoggedIn()) {
-            throw new RuntimeException("Login failed")
+            throw new RuntimeException("Not logged in")
         }
-        itemManager.sendRequest(loginHandle, serviceName, rics)
+        itemManager.sendSubscribeRequest(loginHandle, serviceName, rics, client)
     }
 
     static Session acquireSession(ConfigProvider configDb) {
@@ -124,10 +128,14 @@ final class TrepConsumer implements Closeable {
         ConfigUtil.useDeprecatedRequestMsgs((ConfigDb)configDb, fullyQualifiedSessionName, false)
         Session session = Session.acquire(fullyQualifiedSessionName)
         if (session == null) {
-            String msg = String.format("Failed acquire session %s", fullyQualifiedSessionName)
+            String msg = String.format("Failed to acquire session %s", fullyQualifiedSessionName)
             throw new RuntimeException(msg)
         }
         return session
+    }
+
+    static void sink(Quote quote) {
+        log.info("{}: {}", quote.ticker, quote.value)
     }
 
     /**
