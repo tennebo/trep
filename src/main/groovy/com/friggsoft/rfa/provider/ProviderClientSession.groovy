@@ -27,7 +27,7 @@ import com.reuters.rfa.session.omm.OMMSolicitedItemEvent
  */
 @Slf4j
 final class ProviderClientSession implements Client, Closeable {
-    private final ProviderApp provider
+    private final TrepProvider provider
     private final OmmMessageEncoder messageEncoder
 
     /**
@@ -40,7 +40,7 @@ final class ProviderClientSession implements Client, Closeable {
      */
     private final HashMap<Token, TickData> itemReqTable = new HashMap<>()
 
-    ProviderClientSession(ProviderApp providerApp) {
+    ProviderClientSession(TrepProvider providerApp) {
         this.provider = providerApp
         this.messageEncoder = new OmmMessageEncoder(
                 provider.serviceName, provider.rwfDictionary, provider.getOmmPool())

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 import com.friggsoft.rfa.config.ProviderProperties
-import com.friggsoft.rfa.provider.ProviderApp
+import com.friggsoft.rfa.provider.TrepProvider
 import com.reuters.rfa.config.ConfigDb
 
 import groovy.util.logging.Slf4j
@@ -30,7 +30,7 @@ class SpringProviderRunner implements ApplicationRunner {
 
     @Override
     void run(ApplicationArguments args) {
-        ProviderApp provider = new ProviderApp(configDb)
+        TrepProvider provider = new TrepProvider(configDb)
         try {
             log.info("Starting provider {}", provider)
             provider.dispatchEvents()

@@ -34,7 +34,7 @@ import com.reuters.rfa.session.omm.OMMProvider
  * After initialization, the app will periodically send events (if streaming was requested).
  */
 @Slf4j
-final class ProviderApp implements Client, Closeable {
+final class TrepProvider implements Client, Closeable {
 
     /** Name of the service that this provider application supports. */
     final String serviceName
@@ -75,7 +75,7 @@ final class ProviderApp implements Client, Closeable {
      *
      * @param configProvider database of configuration parameters
      */
-    ProviderApp(ConfigDb configProvider) {
+    TrepProvider(ConfigDb configProvider) {
         log.info("Initializing OMM Provider...")
 
         serviceName = configProvider.variable("", Constants.serviceName)
