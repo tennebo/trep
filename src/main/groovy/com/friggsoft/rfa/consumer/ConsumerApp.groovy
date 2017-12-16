@@ -52,7 +52,7 @@ final class ConsumerApp implements Closeable {
      *
      * @param configDb database of configuration parameters
      */
-    ConsumerApp(ConfigDb configDb) {
+    ConsumerApp(ConfigProvider configDb) {
         log.info("Initializing OMM Consumer...")
 
         configProvider = configDb
@@ -104,6 +104,9 @@ final class ConsumerApp implements Closeable {
     }
 
     void subscribe(String[] rics) {
+        if (!loginClient.isLoggedIn()) {
+            throw new RuntimeException("Login failed")
+        }
         itemManager.sendRequest(loginHandle, serviceName, rics)
     }
 
