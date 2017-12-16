@@ -11,6 +11,7 @@ appender('console', ConsoleAppender) {
 
 // Set logging levels
 logger("com.friggsoft", INFO)
+logger("com.friggsoft.rfa.consumer.StreamingClient", TRACE)
 logger("org.springframework", WARN)
 logger("org.springframework.boot.SpringApplication", WARN)
 
