@@ -223,7 +223,7 @@ final class ProviderApp implements Client, Closeable {
      * Dispatch events from event queue. If no events, wait N milliseconds before trying again.
      */
     void dispatchEvents() {
-        final int waitMilliSeconds = 100
+        final int waitMilliSeconds = 10
 
         for (;;) {
             try {
