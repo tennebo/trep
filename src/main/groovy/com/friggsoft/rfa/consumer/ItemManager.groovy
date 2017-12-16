@@ -13,7 +13,7 @@ import com.reuters.rfa.session.omm.OMMItemEvent
 import com.reuters.rfa.session.omm.OMMItemIntSpec
 
 /**
- * Handle item requests and responses between the application and RFA.
+ * Handle item requests and responses between the consumer application and RFA.
  */
 @Slf4j
 final class ItemManager implements Client, Closeable {
@@ -58,25 +58,22 @@ final class ItemManager implements Client, Closeable {
      * Extract the RIC from the given message.
      */
     private static String getRIC(OMMMsg responseMsg) {
-        return responseMsg.has(OMMMsg.HAS_ATTRIB_INFO)?
-                responseMsg.getAttribInfo().getName() : "<No RIC>"
+        return responseMsg.has(OMMMsg.HAS_ATTRIB_INFO) ? responseMsg.getAttribInfo().getName() : "<No RIC>"
     }
 
     /**
      * For diagnostics: Extract the state description from the given message.
      */
     private static String getStateText(OMMMsg responseMsg) {
-        return responseMsg.has(OMMMsg.HAS_STATE)?
-                responseMsg.getState().getText() : "<stateless>"
+        return responseMsg.has(OMMMsg.HAS_STATE)? responseMsg.getState().getText() : "<stateless>"
     }
 
     /**
      * Create streaming request messages for items and register them with RFA.
      */
-    void sendRequest(Handle loginHandle, String serviceName) {
+    void sendRequest(Handle loginHandle, String serviceName, String[] itemNames) {
         log.info("Sending item requests")
 
-        String[] itemNames = ["TRI.N", "MSFT.O"]
         short msgModelType = RDMMsgTypes.MARKET_PRICE
         int indicationFlags =
                 OMMMsg.Indication.REFRESH |

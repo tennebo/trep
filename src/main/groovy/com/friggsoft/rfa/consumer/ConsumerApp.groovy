@@ -29,14 +29,14 @@ final class ConsumerApp implements Closeable {
     final EventQueue eventQueue
 
     /** Name of the service to request data from. */
-    final String serviceName
+    private final String serviceName
 
     /** TREP configuration database. */
     private final ConfigProvider configProvider
 
     final OMMConsumer ommConsumer
     final OMMPool ommPool
-    final OMMEncoder encoder
+    private final OMMEncoder encoder
 
     /** The session serving this application. */
     private final Session session
@@ -107,9 +107,9 @@ final class ConsumerApp implements Closeable {
         return loginClient.awaitLogin(timeout, unit)
     }
 
-    void subscribe() {
+    void subscribe(String[] rics) {
         itemManager = new ItemManager(this)
-        itemManager.sendRequest(loginHandle, serviceName)
+        itemManager.sendRequest(loginHandle, serviceName, rics)
     }
 
     static Session acquireSession(ConfigDb configDb) {
@@ -140,14 +140,14 @@ final class ConsumerApp implements Closeable {
         }
     }
 
-    void run() {
+    void run(String[] rics) {
         // We have to start the dispatcher in order to log in;
         // run it on the default ForkJoinPool
         CompletableFuture<Void> dispatcherFuture = CompletableFuture.runAsync({ dispatchEvents() })
 
         boolean isLoggedIn = login(5, TimeUnit.SECONDS)
         if (isLoggedIn) {
-            subscribe()
+            subscribe(rics)
             // Just sit here and wait for the dispatcher to exit
             dispatcherFuture.join()
         } else {

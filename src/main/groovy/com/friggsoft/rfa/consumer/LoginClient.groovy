@@ -93,9 +93,9 @@ final class LoginClient implements Client {
      * Encode the login request message.
      */
     private static OMMMsg encodeLoginRequestMsg(ConfigProvider configDb, OMMPool ommPool, OMMEncoder encoder) {
-        String application = configDb.variable(null, Constants.application)
-        String username = configDb.variable(null, Constants.user)
-        String position = configDb.variable(null, Constants.position)
+        String application = configDb.variable("", Constants.application)
+        String username = configDb.variable("", Constants.user)
+        String position = configDb.variable("", Constants.position)
 
         OMMMsg msg = ommPool.acquireMsg()
         try {

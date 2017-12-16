@@ -31,9 +31,19 @@ class SpringConsumerRunner implements ApplicationRunner {
     @Override
     void run(ApplicationArguments args) {
         ConsumerApp consumer = new ConsumerApp(configDb)
+
+        // Get RICs to subscribe to from the commandline
+        String[] rics
+        if (args.containsOption("ric")) {
+            rics = args.getOptionValues("ric")
+        } else {
+            log.error("Please provide a RIC to listen to, e.g. --ric=TRI.N")
+            System.exit(1)
+        }
+
         try {
             log.info("Starting consumer {}", consumer)
-            consumer.run()
+            consumer.run(rics)
         } finally {
             log.info("Shutting down consumer {}", consumer)
             consumer.close()
