@@ -5,6 +5,7 @@ import groovy.util.logging.Slf4j
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 
 import com.friggsoft.rfa.config.Constants
 import com.reuters.rfa.common.Context
@@ -58,7 +59,7 @@ final class TrepConsumer implements Closeable {
      *
      * @param configDb database of configuration parameters
      */
-    TrepConsumer(ConfigProvider configDb) {
+    TrepConsumer(ConfigProvider configDb, Consumer<Quote> sink) {
         log.info("Initializing OMM Consumer...")
 
         configProvider = configDb
@@ -82,7 +83,7 @@ final class TrepConsumer implements Closeable {
         // Create an OMMPool
         ommPool = OMMPool.create()
 
-        client = new StreamingClient(this.&sink)
+        client = new StreamingClient(sink)
         itemManager = new ItemManager(eventQueue, ommConsumer, ommPool)
 
         log.info("RFA version info: {}", Context.string())
@@ -133,10 +134,6 @@ final class TrepConsumer implements Closeable {
             throw new RuntimeException(msg)
         }
         return session
-    }
-
-    static void sink(Quote quote) {
-        log.info("{}: {}", quote.ticker, quote.value)
     }
 
     /**

@@ -54,6 +54,7 @@ repositories {
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter'
     compile 'org.codehaus.groovy:groovy'
+    compile 'org.influxdb:influxdb-java:2.8'
     compile 'com.reuters:rfa:8.1.0.L1'
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'
