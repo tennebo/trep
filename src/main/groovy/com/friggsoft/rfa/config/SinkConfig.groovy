@@ -2,6 +2,8 @@ package com.friggsoft.rfa.config
 
 import groovy.util.logging.Slf4j
 
+import java.time.temporal.ChronoField
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 import org.influxdb.InfluxDB
@@ -20,6 +22,22 @@ import com.friggsoft.rfa.consumer.Quote
 @Configuration
 class SinkConfig {
 
+    /** Name of the measurement in the InfluxDB; this is akin to an SQL table. */
+    final static String measurement = "quote"
+
+    // Field names
+    final static String price = "traded_price"
+
+    // Tag names
+    final static String ticker = "ticker"
+
+    /**
+     * A sink that will write to InfluxDB (a real-time DB).
+     *
+     * @param influxDB a connection to an InfluxDB instance
+     * @param properties Spring Boot application properties
+     * @return the sink (consumer) wired up to an InfluxDB instance
+     */
     @Bean
     @Profile("influx")
     Consumer<Quote> influxSink(InfluxDB influxDB, InfluxDbProperties properties) {
@@ -36,9 +54,18 @@ class SinkConfig {
 
     def writePoint = {
         InfluxDB influxDB, String database, Quote quote ->
-            log.info("Writing {}={} to InfluxDB {}", quote.ticker, quote.value, database)
-            Point point = Point.measurement(quote.ticker)
-                    .addField("value", quote.value)
+            // We want the time expressed as unix epoch time in milliseconds
+            long seconds = quote.time.toEpochSecond()
+            long millis = quote.time.getLong(ChronoField.MILLI_OF_SECOND)
+            long epochMillis = 1000 * seconds + millis
+
+            log.debug("Time {} is {} ms ({} s + {} ms)", quote.time, epochMillis, seconds, millis)
+            log.info("Writing {}={} to {}::{}", quote.ticker, quote.value, database, measurement)
+
+            Point point = Point.measurement(measurement)
+                    .time(epochMillis, TimeUnit.MILLISECONDS)
+                    .addField(price, quote.value)
+                    .tag(ticker, quote.ticker)
                     .build()
             influxDB.write(point)
     }
