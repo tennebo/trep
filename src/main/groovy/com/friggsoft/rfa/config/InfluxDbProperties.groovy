@@ -26,4 +26,12 @@ class InfluxDbProperties {
 
     /** The retention policy used for writing points. */
     String retentionPolicy = "autogen"
+
+    boolean enableBatch = true
+
+    /** The max number of write actions to collect in a batch. */
+    int batchSize = 1000
+
+    /** The time to wait [ms] at most before flushing each batch. */
+    int batchDurationMs = 100
 }

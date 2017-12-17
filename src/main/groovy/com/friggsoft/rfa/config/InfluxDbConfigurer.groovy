@@ -1,5 +1,7 @@
 package com.friggsoft.rfa.config
 
+import java.util.concurrent.TimeUnit
+
 import org.influxdb.InfluxDB
 import org.influxdb.impl.InfluxDBImpl
 import org.springframework.beans.factory.ObjectProvider
@@ -28,7 +30,7 @@ class InfluxDbConfigurer {
 
     @Bean
     InfluxDB influxDB() {
-        return new InfluxDBImpl(
+        InfluxDBImpl influxDB = new InfluxDBImpl(
                 properties.url,
                 properties.user,
                 properties.password,
@@ -36,5 +38,11 @@ class InfluxDbConfigurer {
                 properties.database,
                 properties.retentionPolicy,
                 InfluxDB.ConsistencyLevel.ONE)
+
+        // Batching: Flush every X Points, at least every Y ms
+        if (properties.enableBatch) {
+            influxDB.enableBatch(properties.batchSize, properties.batchDurationMs, TimeUnit.MILLISECONDS)
+        }
+        return influxDB
     }
 }
