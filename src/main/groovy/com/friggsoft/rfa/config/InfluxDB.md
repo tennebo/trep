@@ -2,7 +2,7 @@
 
 InfluxDB is schema-less, but conceptually our schema looks like this:
 
-Measurement name: quote
+Measurement name: ```quote```
 
  * The ```time``` column is always there, and its format is ISO 8601 UTC
  * ```last```, ```bid``` and ```ask``` are _fields_, and their field values are the observed quotes
@@ -18,3 +18,9 @@ in a table scan. In other words, a query on fields will be slow as molasses.
 | 2017-12-31T09:09:00Z | 65.02 | 64.00 | 65.00 | SLB | N |
 | 2017-12-31T09:09:02Z | 65.00 | 64.00 | 64.80 | SLB | N |
 | 2017-12-31T09:09:03Z | 90.50 | 90.00 | 90.80 | IBM | N |
+
+To query:
+
+    curl -G 'http://localhost:8086/query?pretty=true'
+        --data-urlencode "db=trep"
+        --data-urlencode "q=SELECT * FROM quote"
