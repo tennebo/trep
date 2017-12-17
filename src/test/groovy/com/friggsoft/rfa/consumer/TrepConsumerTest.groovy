@@ -16,7 +16,7 @@ class TrepConsumerTest {
     @Before
     void setUp() {
         ConfigProvider configProvider = ConfigProviderFactory.newConfigProvider()
-        trepConsumer = new TrepConsumer(configProvider)
+        trepConsumer = new TrepConsumer(configProvider, {})
     }
 
     @After
