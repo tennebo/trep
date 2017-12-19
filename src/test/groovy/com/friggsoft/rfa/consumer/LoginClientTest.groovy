@@ -9,6 +9,7 @@ import org.junit.Test
 import org.mockito.Mockito
 
 import com.reuters.rfa.common.Event
+import com.reuters.rfa.common.Handle
 import com.reuters.rfa.config.ConfigProvider
 import com.reuters.rfa.omm.OMMMsg
 import com.reuters.rfa.omm.OMMState
@@ -58,7 +59,9 @@ class LoginClientTest {
     @Test
     void testCompletionEvent() {
         Event event = Mockito.mock(Event.class)
+        Handle handle = Mockito.mock(Handle.class)
         Mockito.when(event.getType()).thenReturn(Event.COMPLETION_EVENT)
+        Mockito.when(event.getHandle()).thenReturn(handle)
 
         LoginClient loginClient = new LoginClient()
 
