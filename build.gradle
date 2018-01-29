@@ -51,6 +51,12 @@ repositories {
     }
 }
 
+// Setup the Spring Boot configuration annotation processor
+dependencies {
+    compileOnly 'org.springframework.boot:spring-boot-configuration-processor'
+}
+compileJava.dependsOn(processResources)
+
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter'
     compile 'org.codehaus.groovy:groovy'
