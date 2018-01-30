@@ -31,14 +31,19 @@ final class ProviderClientSession implements Client, Closeable {
     private final OmmMessageEncoder messageEncoder
 
     /**
-     * An timer to periodically generate timer events to handles updates.
+     * A timer to periodically generate timer events to handles updates.
      */
     private Handle timerHandle
 
     /**
-     * Collection of items receiving updates.
+     * Collection of items receiving updates; key is request token.
      */
-    private final HashMap<Token, TickData> itemReqTable = new HashMap<>()
+    private final HashMap<Token, TickData> itemRequestMap = new HashMap<>()
+
+    /**
+     * Map of RIC to request token.
+     */
+    private final HashMap<String, Token> itemRequestTokens = new HashMap<>()
 
     ProviderClientSession(TrepProvider providerApp) {
         this.provider = providerApp
@@ -50,7 +55,8 @@ final class ProviderClientSession implements Client, Closeable {
     void close() {
         unregisterTimer()
         provider.unregisterClient(this)
-        itemReqTable.clear()
+        itemRequestMap.clear()
+        itemRequestTokens.clear()
         messageEncoder.close()
     }
 
@@ -60,7 +66,7 @@ final class ProviderClientSession implements Client, Closeable {
 
         switch (event.type) {
             case Event.TIMER_EVENT:
-                sendUpdates()
+                sendUpdatesOnTimer()
                 break
             case Event.OMM_INACTIVE_CLIENT_SESSION_PUB_EVENT:
                 processInactiveClientSessionEvent((OMMInactiveClientSessionEvent) event)
@@ -74,9 +80,9 @@ final class ProviderClientSession implements Client, Closeable {
         }
     }
 
-    private void sendUpdates() {
-        for (Token rq : itemReqTable.keySet()) {
-            TickData tickData = itemReqTable.get(rq)
+    private void sendUpdatesOnTimer() {
+        for (Token rq : itemRequestMap.keySet()) {
+            TickData tickData = itemRequestMap.get(rq)
             if (tickData == null || tickData.isPaused) { // Don't send update for paused items
                 continue
             }
@@ -250,8 +256,8 @@ final class ProviderClientSession implements Client, Closeable {
      */
     private void processItemRequest(OMMSolicitedItemEvent event) {
         OMMMsg msg = event.getMsg()
-        Token rq = event.getRequestToken()
-        TickData tickData = itemReqTable.get(rq)
+        Token requestToken = event.getRequestToken()
+        TickData tickData = itemRequestMap.get(requestToken)
 
         switch (msg.getMsgType()) {
             case OMMMsg.MsgType.REQUEST:
@@ -269,13 +275,13 @@ final class ProviderClientSession implements Client, Closeable {
                         log.info("Received item non-streaming request for {}:{}", serviceName, name)
                     } else {
                         log.info("Received item streaming request for {}:{}", serviceName, name)
-                        itemReqTable.put(rq, tickData)
+                        itemRequestMap.put(requestToken, tickData)
                         tickData.setHandle(event.getHandle())
                         tickData.setPriorityCount(1)
                         tickData.setPriorityClass(1)
 
                         // If this is the first streaming request, activate update timer
-                        if (itemReqTable.size() == 1) {
+                        if (itemRequestMap.size() == 1) {
                             registerTimer()
                         }
                     }
@@ -293,12 +299,12 @@ final class ProviderClientSession implements Client, Closeable {
                 sendRefreshMsg(event, tickData)
                 break
             case OMMMsg.MsgType.CLOSE_REQ:
-                log.info("Item close request")
+                String name = msg.getAttribInfo().getName()
+                log.info("Item close request for {}", name)
                 if (tickData != null) {
-                    log.info("Item close request for: ", tickData.getName())
                     // Remove the reference to the Token associated for the item
-                    itemReqTable.remove(rq)
-                    if (itemReqTable.isEmpty()) {
+                    itemRequestMap.remove(requestToken)
+                    if (itemRequestMap.isEmpty()) {
                         // No more items, kill the timer
                         unregisterTimer()
                     }
